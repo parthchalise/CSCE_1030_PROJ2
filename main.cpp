@@ -7,7 +7,8 @@ using namespace std;
 
 enum Operations{Match=1, Display =2,Giveup =3,Exit =4};
 const int SIZE =4;
-const int SHUFFLE_COUNT=15;
+const int SHUFFLE_COUNT=15; 
+
 
 // Function definition
 string getName() {
@@ -36,7 +37,7 @@ string getName() {
 }
 // function to generate a random number between 0 and SIZE - 1
 int genRandomIndex() {
-     srand((unsigned)time(0));
+     
     return rand() % SIZE; 
 }
 
@@ -102,52 +103,52 @@ bool checkInputs(int x, int y, int status[SIZE][SIZE]) {
     }
     return false; // Invalid input
 }
+
 void match(int cards[SIZE][SIZE], int status[SIZE][SIZE], int &points) {
-    showCards(cards, status);
-    
     int x1, y1, x2, y2;
 
-    cout << "Enter coordinates for the first card (x y): ";
-    cin >> x1 ;
-    cin>>y1;
-    // Validate input for the first card
+    // Show current arrangement of cards (only face-up cards will be shown)
+    showCards(cards, status);
+
+    // Ask for coordinates of the first card
+    cout << "Enter coordinates of the first card (x y): ";
+    cin >> x1 >> y1;
+
+    // Validate first coordinates
     if (!checkInputs(x1, y1, status)) {
-        cout << "Invalid coordinate or card already face up. Try again." << endl;
+        cout << "Invalid coordinates or card already faced up.\n";
         return;
     }
 
-    cout << "Enter coordinates for the second card (x y): ";
-    cin >> x2;
-    cin>>y2;
-    // Validate input for the second card
-    if (!checkInputs(x2, y2, status)) {
-        cout << "Invalid coordinate or card already face up. Try again." << endl;
+    // Ask for coordinates of the second card
+    cout << "Enter coordinates of the second card (x y): ";
+    cin >> x2 >> y2;
+
+    // Validate second coordinates and check if they are different from the first coordinates
+    if ((x1 == x2 && y1 == y2) || !checkInputs(x2, y2, status)) {
+        cout << "Invalid coordinates, cards already faced up, or duplicate selection.\n";
         return;
     }
 
-    // Check if coordinates are the same
-    if (x1 == x2 && y1 == y2) {
-        cout << "Coordinates must be different. Try again." << endl;
-        return;
-    }
- // Extract card values
-    int card1 = cards[x1][y1];
-    int card2 = cards[x2][y2];
+    // Temporarily reveal both selected cards
+    status[x1][y1] = status[x2][y2] = 1;
+    showCards(cards, status, false); // Show the selected cards temporarily
 
-    if (card1 == card2) { // Cards match
-        status[x1][y1] = 1; // Set status to face up
-        status[x2][y2] = 1; // Set status to face up
-        points += 5; // Increase points
-        cout << "It's a match! You earned 5 points." << endl;
-    } else { // Cards do not match
-        cout << "No match! Try to remember the positions." << endl;
-        showCards(cards, status, true); // Show cards for 5 seconds
-        sleep(5); // Pause for 5 seconds
-        system("clear"); 
-        status[x1][y1] = 0; 
-        status[x2][y2] = 0; 
-        points -= 1; 
+    // Check if the two cards match
+    if (cards[x1][y1] == cards[x2][y2]) {
+        cout << "It's a match! You earned 5 points.\n";
+        points += 5; // Increase points for a correct match
+    } else {
+        // Show unmatched cards briefly
+        cout << "No match! You lost 1 point.\n";
+        points -= 1; // Decrease points for incorrect guess
+        sleep(5); // Pause to allow the player to memorize
+        status[x1][y1] = status[x2][y2] = 0; // Hide the cards again
+        system("clear"); // Clear screen to hide unmatched cards
     }
+
+    // Show the board with updated status (only matched cards remain face up)
+    showCards(cards, status);
 }
 
 void display(int cards[SIZE][SIZE], int status[SIZE][SIZE], int &points) {
@@ -186,6 +187,7 @@ void display(int cards[SIZE][SIZE], int status[SIZE][SIZE], int &points) {
 
 
 int main() {
+    srand((unsigned)time(0));
     int points =50;
     int cards[SIZE][SIZE];
     int status[SIZE][SIZE];
